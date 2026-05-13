@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:tic_tac_toe/constants/app_colors.dart';
 import 'package:tic_tac_toe/constants/custom_text_fonts.dart';
 
-class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
+class WithoutTimerGameScreen extends StatefulWidget {
+  const WithoutTimerGameScreen({super.key});
+
+  static const name = '/without_timer_game_screen';
 
   @override
-  State<GameScreen> createState() => _GameScreenState();
+  State<WithoutTimerGameScreen> createState() => _WithoutTimerGameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
-  List<String> _userInputXO = ['', '', '', '', '', '', '', '', ''];
-  var _isFirstPlayerO = true;
+class _WithoutTimerGameScreenState extends State<WithoutTimerGameScreen> {
+  final List<String> _userInputXO = ['', '', '', '', '', '', '', '', ''];
+  List<int> _matchedIndexes = [];
+  bool _isPlayerO = true;
   String _resultDeclaration = '';
   int _filledBoxes = 0;
   bool _resultDeclared = false;
@@ -22,13 +25,11 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appThemeColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              //SizedBox(height: 50,),
               Expanded(
                 flex: 1,
                 child: Row(
@@ -81,7 +82,12 @@ class _GameScreenState extends State<GameScreen> {
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
-                          color: AppColors.secondaryColor,
+                          color:
+                              _matchedIndexes.contains(
+                                index,
+                              ) //it will check that if any values of matchedIndex match with the indexes of gridView.builder,if matches then the matched ones will get accent and others will get secondary color
+                              ? AppColors.secondaryColor
+                              : AppColors.accentColor,
                         ),
                         child: Text(
                           _userInputXO[index],
@@ -98,27 +104,23 @@ class _GameScreenState extends State<GameScreen> {
                 child: Column(
                   children: [
                     Text(
-                      _resultDeclaration == '' ? '' : _resultDeclaration,
+                      _resultDeclaration,
                       style: CustomTextFonts.coinyGoogleFonts(),
                     ),
                     SizedBox(height: 40),
                     _matchCount > 0
                         ? ElevatedButton(
-                            onPressed: () {
-                              for (int x = 0; x < 9; x++) {
-                                _userInputXO[x] = '';
-                              }
-                              _isFirstPlayerO = false;
-                              _resultDeclared = false;
-                              _resultDeclaration = '';
-                              setState(() {});
-                            },
-                            child: Text(
-                              'Play Again',
-                              style: CustomTextFonts.coinyGoogleFonts(
-                                color: Colors.black,
+                            onPressed: _playAgainButtonOnTap,
+                            child: Transform.translate(
+                              offset: Offset(0, -3),
+                              //with that we can fit the text wherever we want by x and y axis
+                              child: Text(
+                                'Play Again',
+                                style: CustomTextFonts.coinyGoogleFonts(
+                                  color: Colors.black,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
-                              textAlign: TextAlign.center,
                             ),
                           )
                         : SizedBox(),
@@ -132,23 +134,33 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  void _playAgainButtonOnTap() {
+    for (int x = 0; x < 9; x++) {
+      _userInputXO[x] = '';
+    }
+    _isPlayerO = true;
+    _resultDeclared = false;
+    _resultDeclaration = '';
+    _matchedIndexes = [];
+    _filledBoxes = 0;
+    setState(() {});
+  }
+
   void _gameBoardContainerOnTap(int index) {
-    if (_isFirstPlayerO &&
-        _userInputXO[index] == '' &&
-        _resultDeclared == false) {
+    if (_isPlayerO && _userInputXO[index] == '' && _resultDeclared == false) {
       _userInputXO[index] = 'O';
       _filledBoxes++;
       _winnerSelection();
       _isDraw();
-      _isFirstPlayerO = !_isFirstPlayerO;
-    } else if (_isFirstPlayerO == false &&
+      _isPlayerO = !_isPlayerO;
+    } else if (_isPlayerO == false &&
         _userInputXO[index] == '' &&
         _resultDeclared == false) {
       _userInputXO[index] = 'X';
       _filledBoxes++;
       _winnerSelection();
       _isDraw();
-      _isFirstPlayerO = !_isFirstPlayerO;
+      _isPlayerO = !_isPlayerO;
     }
     setState(() {});
   }
@@ -158,16 +170,19 @@ class _GameScreenState extends State<GameScreen> {
     if (_userInputXO[0] != '' &&
         _userInputXO[0] == _userInputXO[1] &&
         _userInputXO[0] == _userInputXO[2]) {
+      _matchedIndexes.addAll([0, 1, 2]);
       _resultDeclaration = 'Player ${_userInputXO[0]} Wins';
       _updateScore(_userInputXO[0]);
     } else if (_userInputXO[3] != '' &&
         _userInputXO[3] == _userInputXO[4] &&
         _userInputXO[3] == _userInputXO[5]) {
+      _matchedIndexes.addAll([3, 4, 5]);
       _resultDeclaration = 'Player ${_userInputXO[3]} Wins';
       _updateScore(_userInputXO[3]);
     } else if (_userInputXO[6] != '' &&
         _userInputXO[6] == _userInputXO[7] &&
         _userInputXO[6] == _userInputXO[8]) {
+      _matchedIndexes.addAll([6, 7, 8]);
       _resultDeclaration = 'Player ${_userInputXO[6]} Wins';
       _updateScore(_userInputXO[6]);
     }
@@ -175,16 +190,19 @@ class _GameScreenState extends State<GameScreen> {
     else if (_userInputXO[0] != '' &&
         _userInputXO[0] == _userInputXO[3] &&
         _userInputXO[0] == _userInputXO[6]) {
+      _matchedIndexes.addAll([0, 3, 6]);
       _resultDeclaration = 'Player ${_userInputXO[0]} Wins';
       _updateScore(_userInputXO[0]);
     } else if (_userInputXO[1] != '' &&
         _userInputXO[1] == _userInputXO[4] &&
         _userInputXO[1] == _userInputXO[7]) {
+      _matchedIndexes.addAll([1, 4, 7]);
       _resultDeclaration = 'Player ${_userInputXO[1]} Wins';
       _updateScore(_userInputXO[1]);
     } else if (_userInputXO[2] != '' &&
         _userInputXO[2] == _userInputXO[5] &&
         _userInputXO[2] == _userInputXO[8]) {
+      _matchedIndexes.addAll([2, 5, 8]);
       _resultDeclaration = 'Player ${_userInputXO[2]} Wins';
       _updateScore(_userInputXO[2]);
     }
@@ -192,15 +210,16 @@ class _GameScreenState extends State<GameScreen> {
     else if (_userInputXO[0] != '' &&
         _userInputXO[0] == _userInputXO[4] &&
         _userInputXO[0] == _userInputXO[8]) {
+      _matchedIndexes.addAll([0, 4, 8]);
       _resultDeclaration = 'Player ${_userInputXO[0]} Wins';
       _updateScore(_userInputXO[0]);
     } else if (_userInputXO[2] != '' &&
         _userInputXO[2] == _userInputXO[4] &&
         _userInputXO[2] == _userInputXO[6]) {
+      _matchedIndexes.addAll([2, 4, 6]);
       _resultDeclaration = 'Player ${_userInputXO[2]} Wins';
       _updateScore(_userInputXO[2]);
     }
-    setState(() {});
   }
 
   void _updateScore(String winner) {
@@ -220,7 +239,6 @@ class _GameScreenState extends State<GameScreen> {
       _resultDeclaration = 'Nobody Wins';
       _resultDeclared = true;
       _matchCount++;
-      setState(() {});
     }
   }
 }

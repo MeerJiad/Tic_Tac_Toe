@@ -10,6 +10,7 @@ class CustomTextFonts {
       fontSize: fontSize,
       letterSpacing: 3,
       color: color,
+
     );
   }
 }
